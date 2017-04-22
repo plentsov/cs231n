@@ -30,12 +30,29 @@ def softmax_loss_naive(W, X, y, reg):
   # here, it is easy to run into numeric instability. Don't forget the        #
   # regularization!                                                           #
   #############################################################################
-  pass
+  n = X.shape[0]
+  c = W.shape[1]
+  
+  for i in range(n):
+    x = X[i]
+    loss -= X.dot(W)[i, y[i]]
+    sum_exp = 0
+    for j in range(c):
+      sum_exp += np.exp(X.dot(W))[i, j]
+    for j in range(c):
+      dW[:,j] += (X[i]*np.exp(X.dot(W))[i,j]/sum_exp)
+    dW[:,y[i]] -= X[i]
+    loss += np.log(sum_exp)
+  dW /= n
+  loss /= n
+  loss += np.sum(W*W)
+  dW += 2*W
   #############################################################################
   #                          END OF YOUR CODE                                 #
   #############################################################################
 
   return loss, dW
+
 
 
 def softmax_loss_vectorized(W, X, y, reg):
@@ -54,7 +71,20 @@ def softmax_loss_vectorized(W, X, y, reg):
   # here, it is easy to run into numeric instability. Don't forget the        #
   # regularization!                                                           #
   #############################################################################
-  pass
+  n = X.shape[0]
+  c = W.shape[1]
+  
+  loss -= np.sum(X.dot(W)[np.arange(n), y])
+  loss += np.sum(np.log(np.sum(np.exp(X.dot(W)), axis = 1)))
+  loss /= n
+  loss += np.sum(W**2)
+
+  dW += X.T.dot(np.exp(X.dot(W)) / np.sum(np.exp(X.dot(W)), axis = 1).reshape(-1,1))
+  t = np.zeros((n, c))
+  t[np.arange(n), y] = 1
+  dW -= X.T.dot(t)
+  dW /= n
+  dW += 2*W
   #############################################################################
   #                          END OF YOUR CODE                                 #
   #############################################################################
